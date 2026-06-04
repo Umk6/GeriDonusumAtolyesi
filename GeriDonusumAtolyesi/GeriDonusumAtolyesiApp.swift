@@ -12,7 +12,8 @@ import SwiftData
 struct GeriDonusumAtolyesiApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            PlayerData.self,
+            Level.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -25,7 +26,7 @@ struct GeriDonusumAtolyesiApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainMenuView()
         }
         .modelContainer(sharedModelContainer)
     }
