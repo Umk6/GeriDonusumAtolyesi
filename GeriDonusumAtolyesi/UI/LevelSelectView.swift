@@ -63,11 +63,22 @@ struct LevelSelectView: View {
                     ScrollView {
                         LazyVGrid(columns: columns, spacing: 20) {
                             ForEach(sortedLevels) { level in
-                                LevelButton(level: level) {
-                                    selectedLevel = level
-                                    showingGame = true
+                                VStack(spacing: 5) {
+                                    LevelButton(level: level) {
+                                        selectedLevel = level
+                                        showingGame = true
+                                    }
+                                    .disabled(!level.isUnlocked)
+
+                                    // Seviye açıklaması (özel seviyelerde)
+                                    if level.isUnlocked && shouldShowDescription(level.number) {
+                                        Text(LevelManager.getLevelDescription(level.number))
+                                            .font(.caption2)
+                                            .foregroundColor(.white.opacity(0.8))
+                                            .multilineTextAlignment(.center)
+                                            .frame(width: 70)
+                                    }
                                 }
-                                .disabled(!level.isUnlocked)
                             }
                         }
                         .padding()
@@ -88,6 +99,10 @@ struct LevelSelectView: View {
 
     var sortedLevels: [Level] {
         levels.sorted { $0.number < $1.number }
+    }
+
+    func shouldShowDescription(_ number: Int) -> Bool {
+        return [1, 4, 8, 10, 13, 16, 20, 25, 30].contains(number)
     }
 
     private func initializeLevelsIfNeeded() {

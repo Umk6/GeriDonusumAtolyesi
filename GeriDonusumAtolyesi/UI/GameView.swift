@@ -21,9 +21,14 @@ struct GameView: View {
     @State private var gameSuccess = false
     @State private var gameStars = 0
     @State private var delegateWrapper: GameSceneDelegateWrapper?
+    @State private var showingTutorial = false
 
     var player: PlayerData {
         playerData.first ?? PlayerData()
+    }
+
+    var shouldShowTutorial: Bool {
+        level.number == 1 && !UserDefaults.standard.bool(forKey: "tutorialShown")
     }
 
     var body: some View {
@@ -111,9 +116,24 @@ struct GameView: View {
                     }
                 )
             }
+
+            // Tutorial overlay
+            if showingTutorial {
+                TutorialOverlay {
+                    showingTutorial = false
+                    UserDefaults.standard.set(true, forKey: "tutorialShown")
+                }
+            }
         }
         .onAppear {
             setupGame()
+
+            // Tutorial'ı göster
+            if shouldShowTutorial {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    showingTutorial = true
+                }
+            }
         }
     }
 
