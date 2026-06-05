@@ -27,6 +27,7 @@ class GameScene: SKScene {
     var selectedNode: WasteNode?
     var lastSpawnTime: TimeInterval = 0
     var spawnInterval: TimeInterval = 2.0
+    let maxWasteNodes = 30 // Performans için limit
 
     // Oyun alanları
     var playArea: CGRect!
@@ -198,6 +199,15 @@ class GameScene: SKScene {
 
     private func spawnRandomWaste() {
         guard let level = currentLevel else { return }
+
+        // Performans için: Max node sayısını kontrol et
+        if wasteNodes.count >= maxWasteNodes {
+            // En alttaki (eski) atığı kaldır
+            if let oldestNode = wasteNodes.first(where: { $0.position.y < 100 }) {
+                oldestNode.removeFromParent()
+                wasteNodes.removeAll { $0 == oldestNode }
+            }
+        }
 
         // Rastgele kategori seç
         let category = level.allowedCategories.randomElement() ?? .plastic
