@@ -184,6 +184,9 @@ class GameScene: SKScene {
         addChild(wasteNode)
         wasteNodes.append(wasteNode)
 
+        // Spawn animasyonu
+        wasteNode.playSpawnAnimation()
+
         // Düşüş animasyonu
         wasteNode.physicsBody?.velocity = CGVector(dx: 0, dy: -100)
     }
@@ -275,14 +278,27 @@ class GameScene: SKScene {
         contamination = max(0, contamination - 5)
         updateUI()
 
-        // Titreşim efekti
+        // Ekran titremesi
         let shake = SKAction.sequence([
-            SKAction.moveBy(x: -5, y: 0, duration: 0.05),
-            SKAction.moveBy(x: 10, y: 0, duration: 0.05),
-            SKAction.moveBy(x: -10, y: 0, duration: 0.05),
-            SKAction.moveBy(x: 5, y: 0, duration: 0.05)
+            SKAction.moveBy(x: -8, y: 0, duration: 0.05),
+            SKAction.moveBy(x: 16, y: 0, duration: 0.05),
+            SKAction.moveBy(x: -16, y: 0, duration: 0.05),
+            SKAction.moveBy(x: 8, y: 0, duration: 0.05)
         ])
         run(shake)
+
+        // Kırmızı flash efekti
+        let flashOverlay = SKSpriteNode(color: .red, size: size)
+        flashOverlay.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        flashOverlay.alpha = 0
+        flashOverlay.zPosition = 200
+        addChild(flashOverlay)
+
+        flashOverlay.run(SKAction.sequence([
+            SKAction.fadeAlpha(to: 0.3, duration: 0.1),
+            SKAction.fadeOut(withDuration: 0.2),
+            SKAction.removeFromParent()
+        ]))
     }
 
     private func addScore(_ points: Int) {
