@@ -66,7 +66,7 @@ class GameScene: SKScene {
         let mainBelt = ConveyorBelt(
             width: size.width * 0.8,
             height: 80,
-            speed: 50,
+            beltSpeed: 50,
             direction: .right
         )
         mainBelt.position = CGPoint(x: size.width / 2, y: size.height * 0.5)
@@ -76,7 +76,7 @@ class GameScene: SKScene {
         let sideBelt = ConveyorBelt(
             width: 80,
             height: size.height * 0.3,
-            speed: 40,
+            beltSpeed: 40,
             direction: .up
         )
         sideBelt.position = CGPoint(x: 80, y: size.height * 0.35)
@@ -594,8 +594,8 @@ class GameScene: SKScene {
         }
 
         // Her gruptan 2 veya daha fazlasını birleştir
-        for (category, levelDict) in groupedWastes {
-            for (level, nodes) in levelDict {
+        for (_, levelDict) in groupedWastes {
+            for (_, nodes) in levelDict {
                 if nodes.count >= 2 {
                     // İlk iki düğümü birleştir
                     performMerge(nodes[0], with: nodes[1])
