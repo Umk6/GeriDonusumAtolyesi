@@ -12,6 +12,7 @@ import SwiftData
 struct GameView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Query private var playerData: [PlayerData]
 
     let level: Level
     @State private var scene: GameScene?
@@ -20,6 +21,10 @@ struct GameView: View {
     @State private var gameSuccess = false
     @State private var gameStars = 0
     @State private var delegateWrapper: GameSceneDelegateWrapper?
+
+    var player: PlayerData {
+        playerData.first ?? PlayerData()
+    }
 
     var body: some View {
         ZStack {
@@ -129,6 +134,10 @@ struct GameView: View {
             level.bestScore = max(level.bestScore, score)
             level.stars = max(level.stars, stars)
 
+            // Yeşil puan kazan
+            let earnedPoints = stars * 50 + (score / 10)
+            player.earn(amount: earnedPoints)
+
             // Bir sonraki seviyeyi aç
             let nextLevelNumber = level.number + 1
             let descriptor = FetchDescriptor<Level>(
@@ -173,6 +182,10 @@ struct GameResultView: View {
     let onNext: () -> Void
     let onMenu: () -> Void
 
+    var earnedPoints: Int {
+        stars * 50 + (score / 10)
+    }
+
     var body: some View {
         ZStack {
             // Yarı saydam arka plan
@@ -196,19 +209,40 @@ struct GameResultView: View {
                     }
                 }
 
-                // Skor
-                VStack(spacing: 10) {
-                    Text("Puan")
-                        .font(.headline)
-                        .foregroundColor(.white.opacity(0.8))
+                // Skor ve kazanılanlar
+                HStack(spacing: 20) {
+                    VStack(spacing: 10) {
+                        Text("Puan")
+                            .font(.headline)
+                            .foregroundColor(.white.opacity(0.8))
 
-                    Text("\(score)")
-                        .font(.system(size: 48, weight: .bold))
-                        .foregroundColor(.white)
+                        Text("\(score)")
+                            .font(.system(size: 36, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.1))
+                    .cornerRadius(20)
+
+                    if success {
+                        VStack(spacing: 10) {
+                            Text("Kazandın")
+                                .font(.headline)
+                                .foregroundColor(.white.opacity(0.8))
+
+                            HStack(spacing: 4) {
+                                Image(systemName: "leaf.fill")
+                                    .foregroundColor(.green)
+                                Text("+\(earnedPoints)")
+                                    .font(.system(size: 32, weight: .bold))
+                                    .foregroundColor(.green)
+                            }
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(20)
+                    }
                 }
-                .padding()
-                .background(Color.white.opacity(0.1))
-                .cornerRadius(20)
 
                 // Butonlar
                 VStack(spacing: 15) {

@@ -110,9 +110,8 @@ struct MainMenuView: View {
         .fullScreenCover(isPresented: $showLevelSelect) {
             LevelSelectView()
         }
-        .sheet(isPresented: $showFactory) {
-            Text("Fabrika Geliştirme - Yakında!")
-                .font(.title)
+        .fullScreenCover(isPresented: $showFactory) {
+            FactoryUpgradeView()
         }
     }
 }
