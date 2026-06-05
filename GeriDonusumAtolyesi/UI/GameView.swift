@@ -95,6 +95,16 @@ struct GameView: View {
                 .padding(.top, 10)
 
                 Spacer()
+
+                // Booster bar (alt kısımda)
+                VStack {
+                    Spacer()
+
+                    BoosterBarView { boosterType in
+                        useBooster(boosterType)
+                    }
+                    .padding(.bottom, 20)
+                }
             }
 
             // Sonuç ekranı
@@ -170,6 +180,33 @@ struct GameView: View {
     private func restartGame() {
         showingResults = false
         setupGame()
+    }
+
+    private func useBooster(_ type: BoosterType) {
+        guard let currentScene = scene else { return }
+
+        if BoosterManager.shared.use(type) {
+            AudioManager.shared.playSuccessSound()
+
+            // Booster efektini sahneye uygula
+            switch type {
+            case .magnet:
+                // Tüm metal atıkları topla
+                currentScene.applyMagnetBooster()
+            case .cleanSpray:
+                // Kirli atıkları temizle
+                currentScene.applyCleanSprayBooster()
+            case .superPress:
+                // Aynı türleri birleştir
+                currentScene.applySuperPressBooster()
+            case .timeSlow:
+                // Zamanı yavaşlat
+                currentScene.applyTimeSlowBooster()
+            case .robotArm:
+                // Hatayı geri al
+                currentScene.applyRobotArmBooster()
+            }
+        }
     }
 
     func handleGameEnd(score: Int, success: Bool, stars: Int) {

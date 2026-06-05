@@ -33,6 +33,9 @@ class GameScene: SKScene {
     var spawnArea: CGRect!
     var sortingArea: CGRect!
 
+    // Temizleme istasyonu
+    var cleaningStation: CleaningStation?
+
     // Delegate
     weak var gameDelegate: GameSceneDelegate?
 
@@ -69,21 +72,30 @@ class GameScene: SKScene {
             height: screenHeight * 0.2
         )
 
-        // Oyun alanı (orta %60)
+        // Oyun alanı (orta %55)
         playArea = CGRect(
             x: 0,
-            y: screenHeight * 0.15,
+            y: screenHeight * 0.2,
             width: screenWidth,
-            height: screenHeight * 0.65
+            height: screenHeight * 0.6
         )
 
-        // Sıralama alanı (alt %15)
+        // Sıralama alanı (alt %20)
         sortingArea = CGRect(
             x: 0,
             y: 0,
             width: screenWidth,
-            height: screenHeight * 0.15
+            height: screenHeight * 0.2
         )
+
+        // Temizleme istasyonu ekle
+        let stationSize = CGSize(width: 100, height: 80)
+        let stationPosition = CGPoint(
+            x: screenWidth - 60,
+            y: screenHeight * 0.15
+        )
+        cleaningStation = CleaningStation(position: stationPosition, size: stationSize)
+        addChild(cleaningStation!)
 
         // Alan çizgilerini göster (geliştirme için)
         drawAreaBorders()
@@ -239,6 +251,27 @@ class GameScene: SKScene {
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let selected = selectedNode else { return }
         selected.stopDragging()
+
+        // Temizleme istasyonu kontrolü
+        if let station = cleaningStation, station.canCleanWaste(selected) {
+            let distance = hypot(
+                selected.position.x - station.position.x,
+                selected.position.y - station.position.y
+            )
+
+            if distance < 60 {
+                // Temizle
+                station.cleanWaste(selected) { cleanedWaste in
+                    selected.removeFromParent()
+                    self.wasteNodes.removeAll { $0 == selected }
+                    self.addChild(cleanedWaste)
+                    self.wasteNodes.append(cleanedWaste)
+                    cleanedWaste.position = station.position
+                }
+                selectedNode = nil
+                return
+            }
+        }
 
         // Birleştirme kontrolü
         checkForMerge(selected)
@@ -439,6 +472,192 @@ class GameScene: SKScene {
             return 1
         }
         return 0
+    }
+
+    // MARK: - Booster Methods
+
+    func applyMagnetBooster() {
+        print("🧲 Magnet booster activated")
+
+        var metalWastes: [WasteNode] = []
+        for node in wasteNodes {
+            if node.wasteItem.category == .metal {
+                metalWastes.append(node)
+            }
+        }
+
+        // Metal atıkları ekranın ortasına çek
+        let centerPosition = CGPoint(x: size.width / 2, y: size.height / 2)
+
+        for waste in metalWastes {
+            let move = SKAction.move(to: centerPosition, duration: 0.5)
+            move.timingMode = .easeIn
+            waste.run(move)
+        }
+
+        // Manyetik partiküller
+        showMagnetEffect(at: centerPosition)
+    }
+
+    func applyCleanSprayBooster() {
+        print("💧 Clean spray booster activated")
+
+        var cleanedCount = 0
+
+        for node in wasteNodes where node.wasteItem.isDirty {
+            var cleanItem = node.wasteItem
+            cleanItem.isDirty = false
+
+            let cleanNode = WasteNode(wasteItem: cleanItem)
+            cleanNode.position = node.position
+
+            node.removeFromParent()
+            addChild(cleanNode)
+            wasteNodes.append(cleanNode)
+            wasteNodes.removeAll { $0 == node }
+
+            cleanedCount += 1
+        }
+
+        if cleanedCount > 0 {
+            showCleanSprayEffect()
+        }
+    }
+
+    func applySuperPressBooster() {
+        print("⚡ Super press booster activated")
+
+        // Aynı kategori ve seviyedeki tüm atıkları bul ve birleştir
+        var groupedWastes: [WasteCategory: [WasteLevel: [WasteNode]]] = [:]
+
+        for node in wasteNodes {
+            if !node.wasteItem.isDirty {
+                if groupedWastes[node.wasteItem.category] == nil {
+                    groupedWastes[node.wasteItem.category] = [:]
+                }
+                if groupedWastes[node.wasteItem.category]?[node.wasteItem.level] == nil {
+                    groupedWastes[node.wasteItem.category]?[node.wasteItem.level] = []
+                }
+                groupedWastes[node.wasteItem.category]?[node.wasteItem.level]?.append(node)
+            }
+        }
+
+        // Her gruptan 2 veya daha fazlasını birleştir
+        for (category, levelDict) in groupedWastes {
+            for (level, nodes) in levelDict {
+                if nodes.count >= 2 {
+                    // İlk iki düğümü birleştir
+                    performMerge(nodes[0], with: nodes[1])
+                }
+            }
+        }
+
+        showSuperPressEffect()
+    }
+
+    func applyTimeSlowBooster() {
+        print("⏰ Time slow booster activated")
+
+        // Spawn rate'i yavaşlat
+        let originalInterval = spawnInterval
+        spawnInterval = spawnInterval * 3.0
+
+        // 5 saniye sonra normale dön
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+            self.spawnInterval = originalInterval
+        }
+
+        showTimeSlowEffect()
+    }
+
+    func applyRobotArmBooster() {
+        print("🤖 Robot arm booster activated")
+
+        // Son hatayı geri al
+        if mistakes > 0 {
+            mistakes -= 1
+            contamination = min(100, contamination + 10)
+            updateUI()
+        }
+
+        showRobotArmEffect()
+    }
+
+    // MARK: - Booster Visual Effects
+
+    private func showMagnetEffect(at position: CGPoint) {
+        let magnetIcon = SKLabelNode(text: "🧲")
+        magnetIcon.fontSize = 60
+        magnetIcon.position = position
+        magnetIcon.zPosition = 150
+
+        addChild(magnetIcon)
+
+        magnetIcon.run(SKAction.sequence([
+            SKAction.scale(to: 1.5, duration: 0.3),
+            SKAction.fadeOut(withDuration: 0.2),
+            SKAction.removeFromParent()
+        ]))
+    }
+
+    private func showCleanSprayEffect() {
+        for _ in 0..<20 {
+            let droplet = SKShapeNode(circleOfRadius: 5)
+            droplet.fillColor = .cyan
+            droplet.position = CGPoint(x: CGFloat.random(in: 0...size.width), y: size.height)
+            droplet.zPosition = 150
+
+            addChild(droplet)
+
+            droplet.run(SKAction.sequence([
+                SKAction.moveBy(x: 0, y: -size.height, duration: 1.0),
+                SKAction.removeFromParent()
+            ]))
+        }
+    }
+
+    private func showSuperPressEffect() {
+        let flash = SKSpriteNode(color: .yellow, size: size)
+        flash.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        flash.alpha = 0
+        flash.zPosition = 200
+
+        addChild(flash)
+
+        flash.run(SKAction.sequence([
+            SKAction.fadeAlpha(to: 0.5, duration: 0.1),
+            SKAction.fadeOut(withDuration: 0.2),
+            SKAction.removeFromParent()
+        ]))
+    }
+
+    private func showTimeSlowEffect() {
+        let clockIcon = SKLabelNode(text: "⏰")
+        clockIcon.fontSize = 80
+        clockIcon.position = CGPoint(x: size.width / 2, y: size.height - 150)
+        clockIcon.zPosition = 150
+
+        addChild(clockIcon)
+
+        clockIcon.run(SKAction.sequence([
+            SKAction.fadeOut(withDuration: 5.0),
+            SKAction.removeFromParent()
+        ]))
+    }
+
+    private func showRobotArmEffect() {
+        let robotIcon = SKLabelNode(text: "🤖")
+        robotIcon.fontSize = 60
+        robotIcon.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        robotIcon.zPosition = 150
+
+        addChild(robotIcon)
+
+        robotIcon.run(SKAction.sequence([
+            SKAction.scale(to: 1.5, duration: 0.3),
+            SKAction.fadeOut(withDuration: 0.3),
+            SKAction.removeFromParent()
+        ]))
     }
 }
 
