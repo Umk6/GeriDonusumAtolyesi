@@ -150,6 +150,10 @@ class WasteNode: SKShapeNode {
         isBeingDragged = true
         physicsBody?.isDynamic = false
 
+        // Ses efekti
+        AudioManager.shared.playClickSound()
+        AudioManager.shared.playHapticFeedback()
+
         // Animasyonlu büyüme
         let scaleUp = SKAction.scale(to: 1.15, duration: 0.15)
         scaleUp.timingMode = .easeOut
@@ -158,7 +162,7 @@ class WasteNode: SKShapeNode {
         // Glow'u artır
         glowNode?.run(SKAction.fadeAlpha(to: 1.0, duration: 0.1))
 
-        // Haptic feedback (ses efekti yerine geçici)
+        // Pulse efekti
         let pulse = SKAction.sequence([
             SKAction.scale(to: 1.2, duration: 0.05),
             SKAction.scale(to: 1.15, duration: 0.05)
@@ -184,7 +188,11 @@ class WasteNode: SKShapeNode {
     }
 
     func playMergeAnimation(completion: @escaping () -> Void) {
-        // Ses için placeholder (şimdilik görsel)
+        // Ses ve haptic
+        AudioManager.shared.playMergeSound()
+        AudioManager.shared.playHapticSuccess()
+
+        // Görsel etkiler
         let soundIndicator = SKLabelNode(text: "✨")
         soundIndicator.fontSize = 30
         soundIndicator.position = CGPoint(x: 0, y: 0)
@@ -271,6 +279,10 @@ class WasteNode: SKShapeNode {
     }
 
     func playErrorShake() {
+        // Ses ve haptic
+        AudioManager.shared.playErrorSound()
+        AudioManager.shared.playHapticError()
+
         // Hata titremesi
         let shake = SKAction.sequence([
             SKAction.moveBy(x: -5, y: 0, duration: 0.05),

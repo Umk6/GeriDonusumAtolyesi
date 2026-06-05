@@ -176,7 +176,7 @@ class GameScene: SKScene {
         let wasteItem = WasteItem(
             category: category,
             level: .level1,
-            isDirty: Bool.random() && contamination > 50, // Temizlik yüksekse kirli gelebilir
+            isDirty: Bool.random() && contamination > 50,
             position: CGPoint(x: randomX, y: spawnY)
         )
 
@@ -184,8 +184,9 @@ class GameScene: SKScene {
         addChild(wasteNode)
         wasteNodes.append(wasteNode)
 
-        // Spawn animasyonu
+        // Spawn animasyonu ve ses
         wasteNode.playSpawnAnimation()
+        AudioManager.shared.playDropSound()
 
         // Düşüş animasyonu
         wasteNode.physicsBody?.velocity = CGVector(dx: 0, dy: -100)
@@ -340,6 +341,15 @@ class GameScene: SKScene {
 
     private func gameOver(success: Bool) {
         isGameOver = true
+
+        // Ses efekti
+        if success {
+            AudioManager.shared.playSuccessSound()
+            AudioManager.shared.playHapticSuccess()
+        } else {
+            AudioManager.shared.playErrorSound()
+            AudioManager.shared.playHapticError()
+        }
 
         // Delegate'e bildir
         gameDelegate?.gameDidEnd(score: score, success: success, stars: calculateStars())
