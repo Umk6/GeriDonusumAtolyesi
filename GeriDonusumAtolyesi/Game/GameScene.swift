@@ -7,6 +7,7 @@
 
 import SpriteKit
 import SwiftUI
+import SwiftData
 
 class GameScene: SKScene {
     // Oyun durumu

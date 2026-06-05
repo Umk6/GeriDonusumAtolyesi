@@ -6,6 +6,7 @@
 //
 
 import SpriteKit
+import SwiftUI
 
 class WasteNode: SKShapeNode {
     var wasteItem: WasteItem
