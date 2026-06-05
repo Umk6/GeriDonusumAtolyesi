@@ -37,13 +37,16 @@ class GameScene: SKScene {
     var goalLabel: SKLabelNode!
 
     override func didMove(to view: SKView) {
+        print("🎬 GameScene didMove to view")
         setupScene()
         setupAreas()
         setupUI()
         setupPhysics()
+        print("✅ GameScene setup complete")
     }
 
     private func setupScene() {
+        print("🎨 Setting up scene background")
         backgroundColor = UIColor(red: 0.95, green: 0.95, blue: 0.9, alpha: 1.0)
         scaleMode = .aspectFill
     }
@@ -120,15 +123,19 @@ class GameScene: SKScene {
     }
 
     func startLevel(_ level: Level) {
+        print("🎯 Starting level \(level.number)")
         currentLevel = level
         spawnInterval = 1.0 / level.spawnRate
+        print("⏱️ Spawn interval: \(spawnInterval)s")
 
         // Hedefi göster
         if let firstGoal = level.goals.first {
             goalLabel.text = "Hedef: \(firstGoal.description)"
+            print("🎯 Goal: \(firstGoal.description)")
         }
 
         resetGame()
+        print("✅ Level \(level.number) started successfully")
     }
 
     private func resetGame() {

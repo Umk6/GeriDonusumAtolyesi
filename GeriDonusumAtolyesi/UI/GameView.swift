@@ -28,10 +28,24 @@ struct GameView: View {
 
     var body: some View {
         ZStack {
+            // Arka plan
+            Color(red: 0.95, green: 0.95, blue: 0.9)
+                .ignoresSafeArea()
+
             // Oyun sahnesi
             if let scene = scene {
                 SpriteView(scene: scene)
                     .ignoresSafeArea()
+            } else {
+                // Loading indicator
+                VStack {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                    Text("Yükleniyor...")
+                        .font(.headline)
+                        .foregroundColor(.gray)
+                        .padding(.top)
+                }
             }
 
             // Üst bar
@@ -104,19 +118,33 @@ struct GameView: View {
     }
 
     private func setupGame() {
-        // UIScreen yerine sabit boyut kullan (iPhone standart)
+        print("🎮 Setting up game for level \(level.number)")
+
+        // Ekran boyutunu al
         let screenSize = CGSize(width: 390, height: 844)
+        print("📐 Screen size: \(screenSize)")
+
+        // Scene oluştur
         let newScene = GameScene(size: screenSize)
+        newScene.scaleMode = .aspectFill
+        print("✅ Scene created")
 
         // Delegate'i state'te tut ki deallocate olmasın
         let wrapper = GameSceneDelegateWrapper { [self] score, success, stars in
+            print("🎯 Game ended: score=\(score), success=\(success), stars=\(stars)")
             handleGameEnd(score: score, success: success, stars: stars)
         }
         delegateWrapper = wrapper
         newScene.gameDelegate = wrapper
+        print("✅ Delegate set")
 
+        // Seviyeyi başlat
         newScene.startLevel(level)
+        print("✅ Level started: \(level.number)")
+
+        // Scene'i state'e ata
         scene = newScene
+        print("✅ Scene assigned to state")
     }
 
     private func restartGame() {
