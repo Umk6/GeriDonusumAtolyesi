@@ -17,6 +17,11 @@ class GameScene: SKScene {
     var contamination: Double = 100.0 // %100 temiz başlar
     var isGameOver = false
 
+    // Combo sistemi
+    var comboCount = 0
+    var comboTimer: Timer?
+    var lastMergeTime: TimeInterval = 0
+
     // Atık yönetimi
     var wasteNodes: [WasteNode] = []
     var selectedNode: WasteNode?
@@ -35,6 +40,7 @@ class GameScene: SKScene {
     var scoreLabel: SKLabelNode!
     var contaminationLabel: SKLabelNode!
     var goalLabel: SKLabelNode!
+    var comboLabel: SKLabelNode!
 
     override func didMove(to view: SKView) {
         print("🎬 GameScene didMove to view")
@@ -115,6 +121,15 @@ class GameScene: SKScene {
         goalLabel.fontColor = .darkGray
         goalLabel.position = CGPoint(x: size.width / 2, y: size.height - 70)
         addChild(goalLabel)
+
+        // Combo göstergesi
+        comboLabel = SKLabelNode(text: "")
+        comboLabel.fontSize = 20
+        comboLabel.fontColor = .yellow
+        comboLabel.fontName = "Arial-BoldMT"
+        comboLabel.position = CGPoint(x: size.width / 2, y: size.height - 100)
+        comboLabel.alpha = 0
+        addChild(comboLabel)
     }
 
     private func setupPhysics() {
@@ -261,6 +276,20 @@ class GameScene: SKScene {
     private func performMerge(_ node1: WasteNode, with node2: WasteNode) {
         guard let mergedItem = node1.wasteItem.merged() else { return }
 
+        // Combo güncelle
+        comboCount += 1
+        lastMergeTime = Date().timeIntervalSince1970
+
+        // Combo bonus hesapla
+        let comboMultiplier = min(comboCount, 10) // Max 10x combo
+        let basePoints = mergedItem.pointValue
+        let bonusPoints = basePoints * comboMultiplier
+
+        // Combo göstergesi
+        if comboCount > 1 {
+            showComboIndicator(at: node1.position, combo: comboCount)
+        }
+
         // Animasyon
         node1.playMergeAnimation {
             // Yeni birleşmiş düğüm oluştur
@@ -274,11 +303,40 @@ class GameScene: SKScene {
             node2.removeFromParent()
             self.wasteNodes.removeAll { $0 == node1 || $0 == node2 }
 
-            // Puan ekle
-            self.addScore(mergedItem.pointValue)
-
-            // Ses efekti (TODO)
+            // Puan ekle (combo bonusu ile)
+            self.addScore(bonusPoints)
         }
+
+        // Combo timer'ı resetle
+        comboTimer?.invalidate()
+        comboTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { [weak self] _ in
+            self?.resetCombo()
+        }
+    }
+
+    private func showComboIndicator(at position: CGPoint, combo: Int) {
+        let comboLabel = SKLabelNode(text: "x\(combo) COMBO!")
+        comboLabel.fontSize = 24 + CGFloat(min(combo, 10)) * 2
+        comboLabel.fontColor = .yellow
+        comboLabel.fontName = "Arial-BoldMT"
+        comboLabel.position = position
+        comboLabel.zPosition = 150
+        addChild(comboLabel)
+
+        // Animasyon
+        let moveUp = SKAction.moveBy(x: 0, y: 50, duration: 1.0)
+        let fadeOut = SKAction.fadeOut(withDuration: 0.5)
+        let scale = SKAction.scale(to: 1.5, duration: 0.3)
+
+        comboLabel.run(SKAction.sequence([
+            scale,
+            SKAction.group([moveUp, fadeOut]),
+            SKAction.removeFromParent()
+        ]))
+    }
+
+    private func resetCombo() {
+        comboCount = 0
     }
 
     private func handleContamination() {
@@ -327,6 +385,14 @@ class GameScene: SKScene {
             contaminationLabel.fontColor = .orange
         } else {
             contaminationLabel.fontColor = .red
+        }
+
+        // Combo göster
+        if comboCount > 1 {
+            comboLabel.text = "x\(comboCount) COMBO!"
+            comboLabel.alpha = 1.0
+        } else {
+            comboLabel.alpha = 0.0
         }
     }
 
