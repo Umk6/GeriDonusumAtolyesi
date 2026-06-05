@@ -13,6 +13,7 @@ struct GameView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query private var playerData: [PlayerData]
+    @Query private var statistics: [GameStatistics]
 
     let level: Level
     @State private var scene: GameScene?
@@ -25,6 +26,16 @@ struct GameView: View {
 
     var player: PlayerData {
         playerData.first ?? PlayerData()
+    }
+
+    var stats: GameStatistics {
+        if let existing = statistics.first {
+            return existing
+        } else {
+            let newStats = GameStatistics()
+            modelContext.insert(newStats)
+            return newStats
+        }
     }
 
     var shouldShowTutorial: Bool {
@@ -222,6 +233,10 @@ struct GameView: View {
             // Yeşil puan kazan
             let earnedPoints = stars * 50 + (score / 10)
             player.earn(amount: earnedPoints)
+
+            // İstatistikleri kaydet
+            let isPerfect = stars == 3
+            stats.recordGame(score: score, wasteCount: 10, maxCombo: 5, isPerfect: isPerfect, playTime: 60)
 
             // Bir sonraki seviyeyi aç
             let nextLevelNumber = level.number + 1

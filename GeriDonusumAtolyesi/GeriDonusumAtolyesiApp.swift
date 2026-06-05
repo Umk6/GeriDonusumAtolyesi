@@ -13,7 +13,8 @@ struct GeriDonusumAtolyesiApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             PlayerData.self,
-            Level.self
+            Level.self,
+            GameStatistics.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

@@ -14,6 +14,7 @@ struct MainMenuView: View {
 
     @State private var showLevelSelect = false
     @State private var showFactory = false
+    @State private var showSettings = false
 
     var player: PlayerData {
         if let existing = playerData.first {
@@ -65,27 +66,19 @@ struct MainMenuView: View {
                     }
 
                     MenuButton(
-                        title: "Sonsuz Mod",
-                        icon: "infinity",
-                        color: .blue
-                    ) {
-                        // TODO: Sonsuz moda git
-                    }
-
-                    MenuButton(
                         title: "Fabrika",
-                        icon: "gear",
+                        icon: "building.2.fill",
                         color: .orange
                     ) {
                         showFactory = true
                     }
 
                     MenuButton(
-                        title: "Koleksiyon",
-                        icon: "square.grid.2x2",
-                        color: .purple
+                        title: "Ayarlar",
+                        icon: "gearshape.fill",
+                        color: .gray
                     ) {
-                        // TODO: Koleksiyon ekranı
+                        showSettings = true
                     }
                 }
                 .padding(.horizontal, 40)
@@ -112,6 +105,9 @@ struct MainMenuView: View {
         }
         .fullScreenCover(isPresented: $showFactory) {
             FactoryUpgradeView()
+        }
+        .fullScreenCover(isPresented: $showSettings) {
+            SettingsView()
         }
     }
 }
