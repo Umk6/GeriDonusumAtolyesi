@@ -15,6 +15,7 @@ struct MainMenuView: View {
     @State private var showLevelSelect = false
     @State private var showFactory = false
     @State private var showSettings = false
+    @State private var showEndlessMode = false
 
     var player: PlayerData {
         if let existing = playerData.first {
@@ -66,6 +67,14 @@ struct MainMenuView: View {
                     }
 
                     MenuButton(
+                        title: "∞ Sonsuz Mod",
+                        icon: "infinity",
+                        color: .purple
+                    ) {
+                        showEndlessMode = true
+                    }
+
+                    MenuButton(
                         title: "Fabrika",
                         icon: "building.2.fill",
                         color: .orange
@@ -102,6 +111,9 @@ struct MainMenuView: View {
         }
         .fullScreenCover(isPresented: $showLevelSelect) {
             LevelSelectView()
+        }
+        .fullScreenCover(isPresented: $showEndlessMode) {
+            EndlessModeView()
         }
         .fullScreenCover(isPresented: $showFactory) {
             FactoryUpgradeView()

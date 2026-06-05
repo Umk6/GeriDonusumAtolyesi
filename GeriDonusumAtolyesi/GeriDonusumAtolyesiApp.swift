@@ -14,7 +14,8 @@ struct GeriDonusumAtolyesiApp: App {
         let schema = Schema([
             PlayerData.self,
             Level.self,
-            GameStatistics.self
+            GameStatistics.self,
+            EndlessModeStats.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
