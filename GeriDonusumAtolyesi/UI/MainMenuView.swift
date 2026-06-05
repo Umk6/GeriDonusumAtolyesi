@@ -12,6 +12,9 @@ struct MainMenuView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var playerData: [PlayerData]
 
+    @State private var showLevelSelect = false
+    @State private var showFactory = false
+
     var player: PlayerData {
         if let existing = playerData.first {
             return existing
@@ -58,7 +61,7 @@ struct MainMenuView: View {
                         icon: "play.fill",
                         color: .green
                     ) {
-                        // Level seçim ekranına git
+                        showLevelSelect = true
                     }
 
                     MenuButton(
@@ -66,7 +69,7 @@ struct MainMenuView: View {
                         icon: "infinity",
                         color: .blue
                     ) {
-                        // Sonsuz moda git
+                        // TODO: Sonsuz moda git
                     }
 
                     MenuButton(
@@ -74,7 +77,7 @@ struct MainMenuView: View {
                         icon: "gear",
                         color: .orange
                     ) {
-                        // Fabrika geliştirme
+                        showFactory = true
                     }
 
                     MenuButton(
@@ -82,7 +85,7 @@ struct MainMenuView: View {
                         icon: "square.grid.2x2",
                         color: .purple
                     ) {
-                        // Koleksiyon ekranı
+                        // TODO: Koleksiyon ekranı
                     }
                 }
                 .padding(.horizontal, 40)
@@ -103,6 +106,13 @@ struct MainMenuView: View {
 
                 Spacer()
             }
+        }
+        .fullScreenCover(isPresented: $showLevelSelect) {
+            LevelSelectView()
+        }
+        .sheet(isPresented: $showFactory) {
+            Text("Fabrika Geliştirme - Yakında!")
+                .font(.title)
         }
     }
 }
