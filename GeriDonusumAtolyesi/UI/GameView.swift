@@ -45,14 +45,25 @@ struct GameView: View {
 
     var body: some View {
         ZStack {
-            // Arka plan
+            // Arka plan (her zaman görünür olmalı)
             Color(red: 0.95, green: 0.95, blue: 0.9)
                 .ignoresSafeArea()
+
+            // Debug: Seviye bilgisi
+            VStack {
+                Text("Level: \(level.number)")
+                    .font(.largeTitle)
+                    .foregroundColor(.black)
+                Text("Scene: \(scene == nil ? "nil" : "exists")")
+                    .foregroundColor(.red)
+            }
+            .zIndex(100)
 
             // Oyun sahnesi
             if let scene = scene {
                 SpriteView(scene: scene)
                     .ignoresSafeArea()
+                    .background(Color.blue.opacity(0.3))
             } else {
                 // Loading indicator
                 VStack {
@@ -61,6 +72,9 @@ struct GameView: View {
                     Text("Yükleniyor...")
                         .font(.headline)
                         .foregroundColor(.gray)
+                    Text("Level \(level.number)")
+                        .font(.caption)
+                        .foregroundColor(.red)
                         .padding(.top)
                 }
             }
@@ -166,11 +180,16 @@ struct GameView: View {
             }
         }
         .onAppear {
-            setupGame()
+            print("🟢 GameView appeared for level \(level.number)")
+
+            // Scene'i hemen kur
+            DispatchQueue.main.async {
+                setupGame()
+            }
 
             // Tutorial'ı göster
             if shouldShowTutorial {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                     showingTutorial = true
                 }
             }
