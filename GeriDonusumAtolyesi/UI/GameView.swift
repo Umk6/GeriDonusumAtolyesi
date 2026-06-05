@@ -99,7 +99,12 @@ struct GameView: View {
 
     private func setupGame() {
         let newScene = GameScene(size: UIScreen.main.bounds.size)
-        newScene.gameDelegate = GameSceneDelegateWrapper(parent: self)
+
+        // Closure kullanarak delegate'i bağla
+        newScene.gameDelegate = GameSceneDelegateWrapper { [self] score, success, stars in
+            handleGameEnd(score: score, success: success, stars: stars)
+        }
+
         newScene.startLevel(level)
         scene = newScene
     }
@@ -136,14 +141,14 @@ struct GameView: View {
 
 // GameSceneDelegate'i SwiftUI'a bağlamak için wrapper
 class GameSceneDelegateWrapper: GameSceneDelegate {
-    weak var parent: GameView?
+    private let onGameEnd: (Int, Bool, Int) -> Void
 
-    init(parent: GameView) {
-        self.parent = parent
+    init(onGameEnd: @escaping (Int, Bool, Int) -> Void) {
+        self.onGameEnd = onGameEnd
     }
 
     func gameDidEnd(score: Int, success: Bool, stars: Int) {
-        parent?.handleGameEnd(score: score, success: success, stars: stars)
+        onGameEnd(score, success, stars)
     }
 }
 
