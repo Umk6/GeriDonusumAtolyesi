@@ -52,6 +52,29 @@ enum WasteCategory: String, Codable {
         case .electronic: return "📱"
         }
     }
+
+    // Özel yetenekler
+    var specialAbility: String? {
+        switch self {
+        case .battery:
+            return "Pilleri birleştirmek ekstra kontaminasyon puanı verir!"
+        case .organic:
+            return "Organik atıklar hızlı bozunur - 10 saniye içinde işle!"
+        case .electronic:
+            return "Elektronikler 2x puan verir ama temizlenmesi zor!"
+        default:
+            return nil
+        }
+    }
+
+    var scoringMultiplier: Double {
+        switch self {
+        case .electronic: return 2.0
+        case .battery: return 1.5
+        case .glass: return 1.3
+        default: return 1.0
+        }
+    }
 }
 
 enum WasteLevel: Int, Codable {

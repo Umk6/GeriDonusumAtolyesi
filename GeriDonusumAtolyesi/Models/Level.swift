@@ -86,12 +86,19 @@ class Level {
         switch number {
         case 1...3:
             return [.plastic]
-        case 4...10:
+        case 4...7:
             return [.plastic, .paper]
-        case 11...20:
+        case 8...15:
             return [.plastic, .paper, .metal]
-        default:
+        case 16...17:
             return [.plastic, .paper, .metal, .glass]
+        case 18...21:
+            return [.plastic, .paper, .metal, .glass, .battery]
+        case 22...24:
+            return [.plastic, .paper, .metal, .glass, .battery, .organic]
+        default:
+            // 25-30: Tüm atık türleri
+            return [.plastic, .paper, .metal, .glass, .battery, .organic, .electronic]
         }
     }
 }
@@ -203,8 +210,11 @@ class LevelManager {
         case 10: return "10. seviye! 🎉"
         case 13: return "Hız zamanı! ⚡"
         case 16: return "Cam atıklar açıldı!"
+        case 18: return "Piller geliyor! 🔋"
         case 20: return "Yarı yol! 🌟"
-        case 25: return "Expert moduna hoş geldin!"
+        case 22: return "Organik atıklar! 🍎"
+        case 25: return "Elektronik atıklar! 📱"
+        case 28: return "Expert moduna hoş geldin!"
         case 30: return "Final seviyesi! 🏆"
         default: return "Seviye \(number)"
         }

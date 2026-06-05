@@ -37,6 +37,9 @@ class GameScene: SKScene {
     // Temizleme istasyonu
     var cleaningStation: CleaningStation?
 
+    // Bant sistemi
+    var beltManager: ConveyorBeltManager?
+
     // Delegate
     weak var gameDelegate: GameSceneDelegate?
 
@@ -52,7 +55,32 @@ class GameScene: SKScene {
         setupAreas()
         setupUI()
         setupPhysics()
+        setupConveyorBelts()
         print("✅ GameScene setup complete")
+    }
+
+    private func setupConveyorBelts() {
+        beltManager = ConveyorBeltManager(scene: self)
+
+        // Ana bant (yatay - sağa doğru)
+        let mainBelt = ConveyorBelt(
+            width: size.width * 0.8,
+            height: 80,
+            speed: 50,
+            direction: .right
+        )
+        mainBelt.position = CGPoint(x: size.width / 2, y: size.height * 0.5)
+        beltManager?.addBelt(mainBelt)
+
+        // Yan bant (dikey - yukarı)
+        let sideBelt = ConveyorBelt(
+            width: 80,
+            height: size.height * 0.3,
+            speed: 40,
+            direction: .up
+        )
+        sideBelt.position = CGPoint(x: 80, y: size.height * 0.35)
+        beltManager?.addBelt(sideBelt)
     }
 
     private func setupScene() {
@@ -166,6 +194,13 @@ class GameScene: SKScene {
         print("✅ Level \(level.number) started successfully")
     }
 
+    func applyConveyorUpgrade(speedLevel: Int) {
+        // Yükseltme seviyesine göre bant hızını artır
+        let speedMultiplier = 1.0 + (CGFloat(speedLevel - 1) * 0.2) // %20 artış per level
+        beltManager?.upgradeSpeed(multiplier: speedMultiplier)
+        print("🚀 Conveyor speed upgraded to level \(speedLevel) (multiplier: \(speedMultiplier)x)")
+    }
+
     private func resetGame() {
         score = 0
         mistakes = 0
@@ -181,6 +216,12 @@ class GameScene: SKScene {
 
     override func update(_ currentTime: TimeInterval) {
         guard !isGameOver, let level = currentLevel else { return }
+
+        // Delta time hesapla
+        let deltaTime = currentTime - lastSpawnTime
+
+        // Bant sistemini güncelle
+        beltManager?.update(deltaTime: deltaTime, nodes: wasteNodes.map { $0 as SKNode })
 
         // Atık spawn kontrolü
         if currentTime - lastSpawnTime > spawnInterval {
@@ -572,9 +613,16 @@ class GameScene: SKScene {
         let originalInterval = spawnInterval
         spawnInterval = spawnInterval * 3.0
 
+        // Bantları yavaşlat
+        for belt in beltManager?.getAllBelts() ?? [] {
+            belt.activateBoostGlow(duration: 5.0)
+        }
+        beltManager?.upgradeSpeed(multiplier: 0.5)
+
         // 5 saniye sonra normale dön
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
             self.spawnInterval = originalInterval
+            self.beltManager?.upgradeSpeed(multiplier: 2.0) // Geri normale dön
         }
 
         showTimeSlowEffect()
