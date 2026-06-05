@@ -23,6 +23,7 @@ struct GameView: View {
     @State private var gameStars = 0
     @State private var delegateWrapper: GameSceneDelegateWrapper?
     @State private var showingTutorial = false
+    @State private var showingPause = false
 
     var player: PlayerData {
         playerData.first ?? PlayerData()
@@ -92,9 +93,10 @@ struct GameView: View {
 
                     Spacer()
 
-                    // Ayarlar (placeholder)
+                    // Pause butonu
                     Button(action: {
-                        // TODO: Pause menü
+                        showingPause = true
+                        scene?.isPaused = true
                     }) {
                         Image(systemName: "pause.circle.fill")
                             .font(.title)
@@ -144,6 +146,23 @@ struct GameView: View {
                     showingTutorial = false
                     UserDefaults.standard.set(true, forKey: "tutorialShown")
                 }
+            }
+
+            // Pause menü
+            if showingPause {
+                PauseMenuView(
+                    onResume: {
+                        showingPause = false
+                        scene?.isPaused = false
+                    },
+                    onRestart: {
+                        showingPause = false
+                        restartGame()
+                    },
+                    onExit: {
+                        dismiss()
+                    }
+                )
             }
         }
         .onAppear {
