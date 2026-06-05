@@ -19,6 +19,7 @@ struct GameView: View {
     @State private var gameScore = 0
     @State private var gameSuccess = false
     @State private var gameStars = 0
+    @State private var delegateWrapper: GameSceneDelegateWrapper?
 
     var body: some View {
         ZStack {
@@ -98,12 +99,16 @@ struct GameView: View {
     }
 
     private func setupGame() {
-        let newScene = GameScene(size: UIScreen.main.bounds.size)
+        // UIScreen yerine sabit boyut kullan (iPhone standart)
+        let screenSize = CGSize(width: 390, height: 844)
+        let newScene = GameScene(size: screenSize)
 
-        // Closure kullanarak delegate'i bağla
-        newScene.gameDelegate = GameSceneDelegateWrapper { [self] score, success, stars in
+        // Delegate'i state'te tut ki deallocate olmasın
+        let wrapper = GameSceneDelegateWrapper { [self] score, success, stars in
             handleGameEnd(score: score, success: success, stars: stars)
         }
+        delegateWrapper = wrapper
+        newScene.gameDelegate = wrapper
 
         newScene.startLevel(level)
         scene = newScene
@@ -125,9 +130,14 @@ struct GameView: View {
             level.stars = max(level.stars, stars)
 
             // Bir sonraki seviyeyi aç
-            if let nextLevel = try? modelContext.fetch(
-                FetchDescriptor<Level>(predicate: #Predicate { $0.number == level.number + 1 })
-            ).first {
+            let nextLevelNumber = level.number + 1
+            let descriptor = FetchDescriptor<Level>(
+                predicate: #Predicate<Level> { level in
+                    level.number == nextLevelNumber
+                }
+            )
+
+            if let nextLevel = try? modelContext.fetch(descriptor).first {
                 nextLevel.isUnlocked = true
             }
         }
